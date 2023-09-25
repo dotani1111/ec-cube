@@ -1061,12 +1061,13 @@ class EA03ProductCest
             ->入力_販売価格(1, 5000)
             ->登録();
 
-        // 個数を取得
-        $ProductClasses = $Product->getProductClasses();
+        // テストデータ生成時に、上で更新したProductが取得できないためエンティティを再取得
         $this->em->refresh($Product);
+        $ProductClasses = $Product->getProductClasses();
         $this->em->refresh($ProductClasses[0]);
-
         $ProductClass = $ProductClasses[0];
+
+        // 個数を取得
         $stock = $ProductClass->getStock();
 
         // 個数のズレがないか検査
