@@ -74,7 +74,10 @@ class EF01TopCest
         $I->reloadPage();
 
         $findNews = Fixtures::get('findNews');
+        //全ニュース取得
         $newsAll = $findNews();
+
+        // 回す
         foreach ($newsAll as $index => $news) {
             $rowNum = $index + 1;
             $I->see($news['title'], 'div.ec-newsRole__news > div:nth-child('.$rowNum.') > div.ec-newsRole__newsHeading > div.ec-newsRole__newsColumn > div.ec-newsRole__newsTitle');
