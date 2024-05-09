@@ -1138,8 +1138,6 @@ class EA03ProductCest
     public function product_一覧からの規格編集_規格あり_重複在庫の修正(AcceptanceTester $I)
     {
         $I->wantTo('EA0310-UC02-T03 一覧からの規格編集 規格あり 重複在庫の修正');
-        // see https://github.com/EC-CUBE/ec-cube/issues/6150
-        $I->getScenario()->incomplete('ローカルで通るが何故か GitHub Actions でエラーになるためスキップ');
 
         $findProducts = Fixtures::get('findProducts');
         $Products = array_filter($findProducts(), function ($Product) {
