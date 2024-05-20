@@ -74,7 +74,6 @@ class EF06OtherCest
      */
     public function other_パスワード再発行(AcceptanceTester $I)
     {
-        echo getenv('BASE_URL');
         $I->wantTo('EF0602-UC01-T01 パスワード再発行');
         $I->logoutAsMember();
 

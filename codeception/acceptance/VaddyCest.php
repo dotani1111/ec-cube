@@ -27,6 +27,8 @@ class VaddyCest
 
     public function begin(AcceptanceTester $I)
     {
+        echo getenv('BASE_URL');
+
         $I->amOnPage("/{$this->vaddyVerificationFile}?action=begin&time=".time().'&label='.getenv('VADDY_CRAWL'));
         $I->see($this->vaddyVerificationCode);
     }
