@@ -72,10 +72,16 @@ runs:
         vendor/bin/codecept -vvv run -g vaddy acceptance --env chrome,local,vaddy --html report.html ${{ inputs.command }} || true
         vendor/bin/codecept -vvv run acceptance --env chrome,local,vaddy VaddyCest:commit
 
+    - name: "generate artifact name"
+      shell: bash
+      run: |
+          artifact_file_name=$(echo '${{ inputs.command }}' | tr -cd '[:alnum:]_' | tr ' ' '_')
+          echo "artifact_file_name=${artifact_file_name}" >> $GITHUB_ENV
+
     - name: Upload report
       uses: actions/upload-artifact@v4
       with:
-        name: "${{ inputs.command }}-crawl-reports"
+        name: "${{ env.artifact_file_name }}-crawl-reports"
         path: codeception/_output/**/*
 
     - name: "VAddy: disconnect"
