@@ -75,7 +75,7 @@ runs:
     - name: "generate artifact name"
       shell: bash
       run: |
-          artifact_file_name=$(echo '${{ inputs.command }}' | tr -cd '[:alnum:]_' | tr ' ' '_')
+          artifact_file_name=$(echo '${{ inputs.command }}' |sed 's/:/-/g')
           echo "artifact_file_name=${artifact_file_name}" >> $GITHUB_ENV
 
     - name: Upload report
