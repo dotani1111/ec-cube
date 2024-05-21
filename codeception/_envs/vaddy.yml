@@ -4,3 +4,7 @@ modules:
             url: '%BASE_URL%'
             http_proxy: '%VADDY_PROXY%'
             http_proxy_port: '%VADDY_PROXY_PORT%'
+            capabilities:
+                goog:chromeOptions:
+                    prefs:
+                        download.default_directory: '%GITHUB_WORKSPACE%/codeception/_support/_downloads'
