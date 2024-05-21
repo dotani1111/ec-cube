@@ -66,6 +66,7 @@ runs:
         VADDY_VERIFICATION_CODE: "${{ inputs.vaddy-verification-code }}"
         VADDY_CRAWL: "${{ inputs.command }}"
       run: |
+        sed -i "s|%BASE_URL%|${BASE_URL}|g" codeception/_envs/vaddy.yml
         vendor/bin/codecept -vvv run acceptance --env chrome,local,vaddy VaddyCest:begin
         vendor/bin/codecept -vvv run -g vaddy acceptance --env chrome,local,vaddy --html report.html ${{ inputs.command }} || true
         vendor/bin/codecept -vvv run acceptance --env chrome,local,vaddy VaddyCest:commit
