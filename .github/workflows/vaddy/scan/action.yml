@@ -66,14 +66,22 @@ runs:
         VADDY_VERIFICATION_CODE: "${{ inputs.vaddy-verification-code }}"
         VADDY_CRAWL: "${{ inputs.command }}"
       run: |
+        sed -i "s|%BASE_URL%|${BASE_URL}|g" codeception/_envs/vaddy.yml
+        sed -i "s|%GITHUB_WORKSPACE%|${GITHUB_WORKSPACE}|g" codeception/_envs/vaddy.yml
         vendor/bin/codecept -vvv run acceptance --env chrome,local,vaddy VaddyCest:begin
         vendor/bin/codecept -vvv run -g vaddy acceptance --env chrome,local,vaddy --html report.html ${{ inputs.command }} || true
         vendor/bin/codecept -vvv run acceptance --env chrome,local,vaddy VaddyCest:commit
 
+    - name: "generate artifact name"
+      shell: bash
+      run: |
+          artifact_file_name=$(echo '${{ inputs.command }}' |sed 's/:/-/g')
+          echo "artifact_file_name=${artifact_file_name}" >> $GITHUB_ENV
+
     - name: Upload report
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
-        name: crawl-reports
+        name: "${{ env.artifact_file_name }}-crawl-reports"
         path: codeception/_output/**/*
 
     - name: "VAddy: disconnect"
