@@ -60,7 +60,7 @@ runs:
         DATABASE_URL: "postgres://postgres:password@127.0.0.1:5432/eccube_db"
         DATABASE_SERVER_VERSION: "14"
         MAILER_URL: "smtp://127.0.0.1:1025"
-        BASE_URL: "http://${{ inputs.vaddy-fqdn }}:8080"
+        BASE_URL: "https://${{ inputs.vaddy-fqdn }}:8080"
         VADDY_PROXY: "${{ inputs.vaddy-proxy }}"
         VADDY_PROXY_PORT: "${{ inputs.vaddy-proxy-port }}"
         VADDY_VERIFICATION_CODE: "${{ inputs.vaddy-verification-code }}"
