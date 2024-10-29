@@ -1,7 +1,17 @@
 name: VAddy
 on:
-  schedule:
-    - cron: '0 15 * * 0'
+  push:
+    branches:
+      - '*'
+    tags:
+      - '*'
+    paths:
+      - '**'
+      - '!*.md'
+  pull_request:
+    paths:
+      - '**'
+      - '!*.md'
 
 jobs:
   vaddy:
