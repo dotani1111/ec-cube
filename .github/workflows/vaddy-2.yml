@@ -22,7 +22,7 @@ jobs:
             command1: '-x admin -x front'
     services:
       postgres:
-        image: postgres:14
+        image: postgres:17
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
@@ -42,8 +42,7 @@ jobs:
       - name: Setup PHP
         uses: nanasess/setup-php@master
         with:
-          php-version: '8.1'
-
+          php-version: '8.3'
       - name: setup-chromedriver
         uses: nanasess/setup-chromedriver@master
 
@@ -69,7 +68,7 @@ jobs:
       - name: "EC-CUBE: setup"
         env:
           DATABASE_URL: postgres://postgres:password@127.0.0.1:5432/eccube_db
-          DATABASE_SERVER_VERSION: 14
+          DATABASE_SERVER_VERSION: 17
         run: |
           php bin/template_jp.php
           rm -rf app/Plugin/*
@@ -100,7 +99,7 @@ jobs:
         env:
           APP_ENV: 'prod'
           DATABASE_URL: postgres://postgres:password@127.0.0.1:5432/eccube_db
-          DATABASE_SERVER_VERSION: 14
+          DATABASE_SERVER_VERSION: 17
         run: |
           bin/console eccube:composer:require "ec-cube/recommend4"
           bin/console eccube:composer:require "ec-cube/coupon4"
@@ -116,7 +115,7 @@ jobs:
       - name: Pre Install Plugins
         env:
           DATABASE_URL: postgres://postgres:password@127.0.0.1:5432/eccube_db
-          DATABASE_SERVER_VERSION: 14
+          DATABASE_SERVER_VERSION: 17
           PGPASSWORD: 'password'
         run: |
           psql eccube_db -h 127.0.0.1 -U postgres -c "select id,name,code,0 as enabled,version,source,0 as initialized,'2021-08-13 00:00:00' as create_date,'2021-08-13 00:00:00' as update_date,discriminator_type from dtb_plugin;" -A -F, --pset footer > src/Eccube/Resource/doctrine/import_csv/ja/dtb_plugin.csv

@@ -29,7 +29,7 @@ jobs:
             database_charset: utf8mb4
           - db: pgsql
             database_url: postgres://postgres:password@127.0.0.1:5432/eccube_db
-            database_server_version: 16
+            database_server_version: 17
             database_charset: utf8
           - db: sqlite3
             database_url: sqlite:///var/eccube.db
@@ -45,7 +45,7 @@ jobs:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
       postgres:
-        image: postgres:16
+        image: postgres:17
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
