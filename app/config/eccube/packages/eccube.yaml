@@ -61,7 +61,7 @@ parameters:
     eccube_id_max_len: 50
     eccube_id_min_len: 4
     eccube_int_len: 9                              # 最大値で制御したい
-    eccube_category_nest_level: 5
+    eccube_category_nest_hierarchy: 5
     eccube_lltext_len: 99999
     eccube_ltext_len: 3000
     eccube_max_total_fee: 9999999999

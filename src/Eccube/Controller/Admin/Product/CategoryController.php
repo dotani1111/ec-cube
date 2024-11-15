@@ -118,7 +118,7 @@ class CategoryController extends AbstractController
         if ($request->getMethod() === 'POST') {
             $form->handleRequest($request);
             if ($form->isSubmitted() && $form->isValid()) {
-                if ($this->eccubeConfig['eccube_category_nest_level'] < $TargetCategory->getHierarchy()) {
+                if ($this->eccubeConfig['eccube_category_nest_hierarchy'] < $TargetCategory->getHierarchy()) {
                     throw new BadRequestHttpException();
                 }
                 log_info('カテゴリ登録開始', [$id]);

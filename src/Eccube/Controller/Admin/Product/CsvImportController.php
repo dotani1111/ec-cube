@@ -811,24 +811,24 @@ class CsvImportController extends AbstractCsvImportController
                         }
                         $Category->setParent($ParentCategory);
 
-                        // Level
+                        // hierarchy
                         if (isset($row['階層']) && StringUtil::isNotBlank($row['階層'])) {
                             if ($ParentCategory == null && $row['階層'] != 1) {
                                 $this->addErrors(($data->key() + 1).'行目の親カテゴリIDが存在しません。');
 
                                 return $this->renderWithError($form, $headers);
                             }
-                            $level = StringUtil::trimAll($row['階層']);
+                            $hierarchy = StringUtil::trimAll($row['階層']);
                         } else {
-                            $level = 1;
+                            $hierarchy = 1;
                             if ($ParentCategory) {
-                                $level = $ParentCategory->getHierarchy() + 1;
+                                $hierarchy = $ParentCategory->getHierarchy() + 1;
                             }
                         }
 
-                        $Category->setHierarchy($level);
+                        $Category->setHierarchy($hierarchy);
 
-                        if ($this->eccubeConfig['eccube_category_nest_level'] < $Category->getHierarchy()) {
+                        if ($this->eccubeConfig['eccube_category_nest_hierarchy'] < $Category->getHierarchy()) {
                             $this->addErrors(($data->key() + 1).'行目のカテゴリが最大レベルを超えているため設定できません。');
 
                             return $this->renderWithError($form, $headers);

@@ -167,7 +167,7 @@ file that was distributed with this source code.
                                     <form role="form" name="form1" id="form1" method="post"
                                           action="{% if TargetCategory.id %}{{ path('admin_product_category_edit', {id: TargetCategory.id}) }}{% elseif Parent %}{{ url('admin_product_category_show', {'parent_id': Parent.id}) }}{% else %}{{ url('admin_product_category') }}{% endif %}"
                                           enctype="multipart/form-data">
-                                        {% if TargetCategory.hierarchy <= eccube_config.eccube_category_nest_level %}
+                                        {% if TargetCategory.hierarchy <= eccube_config.eccube_category_nest_hierarchy %}
                                             {{ form_widget(form._token) }}
                                             <div class="row mb-3">
                                                 <div class="col-auto">
@@ -312,9 +312,9 @@ file that was distributed with this source code.
             </div>
         </div>
 
-        {% macro tree(Category, TargetId, level, Ids) %}
+        {% macro tree(Category, TargetId, hierarchy, Ids) %}
             {% import _self as selfMacro %}
-            {% set level = level + 1 %}
+            {% set hierarchy = hierarchy + 1 %}
             <li>
                 <label {% if (Category.children|length > 0) and (Category.id not in Ids) %}class="collapsed"
                        {% endif %}data-bs-toggle="collapse"
@@ -328,7 +328,7 @@ file that was distributed with this source code.
                     <ul class="collapse list-unstyled {% if Category.id in Ids %}show{% endif %}"
                         id="directory_category{{ Category.id }}">
                         {% for ChildCategory in Category.children %}
-                            {{ selfMacro.tree(ChildCategory, TargetId, level, Ids) }}
+                            {{ selfMacro.tree(ChildCategory, TargetId, hierarchy, Ids) }}
                         {% endfor %}
                     </ul>
                 {% endif %}
