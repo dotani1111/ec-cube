@@ -1,7 +1,17 @@
 name: VAddy
 on:
-  schedule:
-    - cron: '0 15 * * 0'
+  push:
+    branches:
+      - '*'
+    tags:
+      - '*'
+    paths:
+      - '**'
+      - '!*.md'
+  pull_request:
+    paths:
+      - '**'
+      - '!*.md'
 
 jobs:
   vaddy:
@@ -67,6 +77,7 @@ jobs:
 
       - name: "EC-CUBE: setup"
         env:
+          APP_ENV: 'prod'
           DATABASE_URL: postgres://postgres:password@127.0.0.1:5432/eccube_db
           DATABASE_SERVER_VERSION: 14
         run: |
@@ -101,16 +112,15 @@ jobs:
           DATABASE_URL: postgres://postgres:password@127.0.0.1:5432/eccube_db
           DATABASE_SERVER_VERSION: 14
         run: |
-          bin/console eccube:composer:require "ec-cube/recommend4"
-          bin/console eccube:composer:require "ec-cube/coupon4"
-          bin/console eccube:composer:require "ec-cube/mailmagazine4"
-          bin/console eccube:composer:require "ec-cube/salesreport4"
-          bin/console eccube:composer:require "ec-cube/relatedproduct4"
-          bin/console eccube:composer:require "ec-cube/securitychecker4"
-          bin/console eccube:composer:require "ec-cube/productreview4"
-          bin/console eccube:composer:require "ec-cube/api"
-          bin/console eccube:composer:require "ec-cube/sitekit"
-          bin/console eccube:composer:require "ec-cube/gmc"
+          bin/console eccube:composer:require "ec-cube/recommend42"
+          bin/console eccube:composer:require "ec-cube/coupon42"
+          bin/console eccube:composer:require "ec-cube/mailmagazine42"
+          bin/console eccube:composer:require "ec-cube/salesreport42"
+          bin/console eccube:composer:require "ec-cube/relatedproduct42"
+          bin/console eccube:composer:require "ec-cube/securitychecker42"
+          bin/console eccube:composer:require "ec-cube/productreview42"
+          bin/console eccube:composer:require "ec-cube/api42"
+          bin/console eccube:composer:require "ec-cube/sitekit42"
 
       - name: Pre Install Plugins
         env:
@@ -119,7 +129,7 @@ jobs:
           PGPASSWORD: 'password'
         run: |
           psql eccube_db -h 127.0.0.1 -U postgres -c "select id,name,code,0 as enabled,version,source,0 as initialized,'2021-08-13 00:00:00' as create_date,'2021-08-13 00:00:00' as update_date,discriminator_type from dtb_plugin;" -A -F, --pset footer > src/Eccube/Resource/doctrine/import_csv/ja/dtb_plugin.csv
-          for code in Api Coupon4 GMC MailMagazine4 ProductReview4 Recommend4 RelatedProduct4 SalesReport4 Securitychecker4 SiteKit; do bin/console eccube:plugin:enable --code $code; done
+          for code in Api42 Coupon42 MailMagazine42 ProductReview42 Recommend42 RelatedProduct42 SalesReport42 Securitychecker42 SiteKit42; do bin/console eccube:plugin:enable --code $code; done
 
       - name: "EC-CUBE: package"
         working-directory: ../
@@ -171,7 +181,7 @@ jobs:
           docker exec eccube bash -c "rm -rf /var/www/html/html; ln -s /tmp/html /var/www/html/html;"
           docker exec -u www-data eccube bin/console eccube:install -n
           docker exec -u www-data -e VADDY_VERIFICATION_CODE=${{ secrets[format('{0}{1}', 'VADDY_VERIFICATION_CODE_', matrix.vaddy_project)] }} eccube bash -c 'echo ${VADDY_VERIFICATION_CODE} > vaddy-${VADDY_VERIFICATION_CODE}.html'
-          docker exec -u www-data eccube bash -c 'for code in Api Coupon4 GMC MailMagazine4 ProductReview4 Recommend4 RelatedProduct4 SalesReport4 Securitychecker4 SiteKit; do bin/console eccube:plugin:enable --code $code; done'
+          docker exec -u www-data eccube bash -c 'for code in Api42 Coupon42 MailMagazine42 ProductReview42 Recommend42 RelatedProduct42 SalesReport42 Securitychecker42 SiteKit42; do bin/console eccube:plugin:enable --code $code; done'
 
       - name: "VAddy: connect"
         working-directory: /tmp/go-vaddy-master/privatenet
@@ -236,7 +246,7 @@ jobs:
           docker exec eccube bash -c "rm -rf /var/www/html/html; ln -s /tmp/html /var/www/html/html;"
           docker exec -u www-data eccube bin/console eccube:install -n
           docker exec -u www-data -e VADDY_VERIFICATION_CODE=${{ secrets[format('{0}{1}', 'VADDY_VERIFICATION_CODE_', matrix.vaddy_project)] }} eccube bash -c 'echo ${VADDY_VERIFICATION_CODE} > vaddy-${VADDY_VERIFICATION_CODE}.html'
-          docker exec -u www-data eccube bash -c 'for code in Api Coupon4 GMC MailMagazine4 ProductReview4 Recommend4 RelatedProduct4 SalesReport4 Securitychecker4 SiteKit; do bin/console eccube:plugin:enable --code $code; done'
+          docker exec -u www-data eccube bash -c 'for code in Api42 Coupon42 MailMagazine42 ProductReview42 Recommend42 RelatedProduct42 SalesReport42 Securitychecker42 SiteKit42; do bin/console eccube:plugin:enable --code $code; done'
 
       - name: "VAddy: connect"
         if: ${{ matrix.command2 != '' }}
@@ -305,7 +315,7 @@ jobs:
           docker exec eccube bash -c "rm -rf /var/www/html/html; ln -s /tmp/html /var/www/html/html;"
           docker exec -u www-data eccube bin/console eccube:install -n
           docker exec -u www-data -e VADDY_VERIFICATION_CODE=${{ secrets[format('{0}{1}', 'VADDY_VERIFICATION_CODE_', matrix.vaddy_project)] }} eccube bash -c 'echo ${VADDY_VERIFICATION_CODE} > vaddy-${VADDY_VERIFICATION_CODE}.html'
-          docker exec -u www-data eccube bash -c 'for code in Api Coupon4 GMC MailMagazine4 ProductReview4 Recommend4 RelatedProduct4 SalesReport4 Securitychecker4 SiteKit; do bin/console eccube:plugin:enable --code $code; done'
+          docker exec -u www-data eccube bash -c 'for code in Api42 Coupon42 MailMagazine42 ProductReview42 Recommend42 RelatedProduct42 SalesReport42 Securitychecker42 SiteKit42; do bin/console eccube:plugin:enable --code $code; done'
 
       - name: "VAddy: connect"
         if: ${{ matrix.command3 != '' }}
@@ -374,7 +384,7 @@ jobs:
           docker exec eccube bash -c "rm -rf /var/www/html/html; ln -s /tmp/html /var/www/html/html;"
           docker exec -u www-data eccube bin/console eccube:install -n
           docker exec -u www-data -e VADDY_VERIFICATION_CODE=${{ secrets[format('{0}{1}', 'VADDY_VERIFICATION_CODE_', matrix.vaddy_project)] }} eccube bash -c 'echo ${VADDY_VERIFICATION_CODE} > vaddy-${VADDY_VERIFICATION_CODE}.html'
-          docker exec -u www-data eccube bash -c 'for code in Api Coupon4 GMC MailMagazine4 ProductReview4 Recommend4 RelatedProduct4 SalesReport4 Securitychecker4 SiteKit; do bin/console eccube:plugin:enable --code $code; done'
+          docker exec -u www-data eccube bash -c 'for code in Api42 Coupon42 MailMagazine42 ProductReview42 Recommend42 RelatedProduct42 SalesReport42 Securitychecker42 SiteKit42; do bin/console eccube:plugin:enable --code $code; done'
 
       - name: "VAddy: connect"
         if: ${{ matrix.command4 != '' }}
@@ -443,7 +453,7 @@ jobs:
           docker exec eccube bash -c "rm -rf /var/www/html/html; ln -s /tmp/html /var/www/html/html;"
           docker exec -u www-data eccube bin/console eccube:install -n
           docker exec -u www-data -e VADDY_VERIFICATION_CODE=${{ secrets[format('{0}{1}', 'VADDY_VERIFICATION_CODE_', matrix.vaddy_project)] }} eccube bash -c 'echo ${VADDY_VERIFICATION_CODE} > vaddy-${VADDY_VERIFICATION_CODE}.html'
-          docker exec -u www-data eccube bash -c 'for code in Api Coupon4 GMC MailMagazine4 ProductReview4 Recommend4 RelatedProduct4 SalesReport4 Securitychecker4 SiteKit; do bin/console eccube:plugin:enable --code $code; done'
+          docker exec -u www-data eccube bash -c 'for code in Api42 Coupon42 MailMagazine42 ProductReview42 Recommend42 RelatedProduct42 SalesReport42 Securitychecker42 SiteKit42; do bin/console eccube:plugin:enable --code $code; done'
 
       - name: "VAddy: connect"
         if: ${{ matrix.command5 != '' }}
