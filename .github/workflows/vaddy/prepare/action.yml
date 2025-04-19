@@ -27,7 +27,7 @@ runs:
     - name: Setup PHP
       uses: nanasess/setup-php@master
       with:
-        php-version: '7.4'
+        php-version: '8.1'
 
     - name: setup-chromedriver
       uses: nanasess/setup-chromedriver@master
@@ -113,16 +113,16 @@ runs:
         DATABASE_SERVER_VERSION: 14
         PGPASSWORD: 'password'
       run: |
-        bin/console eccube:composer:require "ec-cube/recommend42"
-        bin/console eccube:composer:require "ec-cube/coupon42"
-        bin/console eccube:composer:require "ec-cube/mailmagazine42"
-        bin/console eccube:composer:require "ec-cube/salesreport42"
-        bin/console eccube:composer:require "ec-cube/relatedproduct42"
-        bin/console eccube:composer:require "ec-cube/securitychecker42"
-        bin/console eccube:composer:require "ec-cube/productreview42"
-        bin/console eccube:composer:require "ec-cube/api42"
-        bin/console eccube:composer:require "ec-cube/sitekit42"
-        psql eccube_db -h 127.0.0.1 -U postgres -c "select id,name,code,0 as enabled,version,source,0 as initialized,'2021-08-13 00:00:00' as create_date,'2021-08-13 00:00:00' as update_date,discriminator_type from dtb_plugin;" -A -F, --pset footer > src/Eccube/Resource/doctrine/import_csv/ja/dtb_plugin.csv
+      #  bin/console eccube:composer:require "ec-cube/recommend42"
+      #  bin/console eccube:composer:require "ec-cube/coupon42"
+      #  bin/console eccube:composer:require "ec-cube/mailmagazine42"
+      #  bin/console eccube:composer:require "ec-cube/salesreport42"
+      #  bin/console eccube:composer:require "ec-cube/relatedproduct42"
+      #  bin/console eccube:composer:require "ec-cube/securitychecker42"
+      #  bin/console eccube:composer:require "ec-cube/productreview42"
+      #  bin/console eccube:composer:require "ec-cube/api42"
+      #  bin/console eccube:composer:require "ec-cube/sitekit42"
+      #  psql eccube_db -h 127.0.0.1 -U postgres -c "select id,name,code,0 as enabled,version,source,0 as initialized,'2021-08-13 00:00:00' as create_date,'2021-08-13 00:00:00' as update_date,discriminator_type from dtb_plugin;" -A -F, --pset footer > src/Eccube/Resource/doctrine/import_csv/ja/dtb_plugin.csv
 
     - name: "EC-CUBE: package"
       shell: bash

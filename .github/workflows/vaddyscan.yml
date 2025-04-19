@@ -3,11 +3,13 @@ on: push
 jobs:
   vaddy:
     name: VAddy
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         include:
+          - vaddy_project: 'ADMIN01'
+            command1: 'EF06OtherCest:other_当サイトについて'
 #          - vaddy_project: 'ADMIN01'
 #            command1: 'EA03ProductCest'
 #            command2: 'EA05CustomerCest'
