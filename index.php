@@ -7,8 +7,8 @@ use Dotenv\Dotenv;
 use Symfony\Component\HttpFoundation\Request;
 
 // システム要件チェック
-if (version_compare(PHP_VERSION, '7.4.0') < 0) {
-    die('Your PHP installation is too old. EC-CUBE requires at least PHP 7.4.0. See the <a href="https://doc4.ec-cube.net/quickstart/requirement" target="_blank">system requirements</a> page for more information.');
+if (version_compare(PHP_VERSION, '8.1.0') < 0) {
+    die('Your PHP installation is too old. EC-CUBE requires at least PHP 8.1.0. See the <a href="https://doc4.ec-cube.net/quickstart/requirement" target="_blank">system requirements</a> page for more information.');
 }
 
 $autoload = __DIR__.'/vendor/autoload.php';
