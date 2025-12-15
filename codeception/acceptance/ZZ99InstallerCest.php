@@ -45,6 +45,8 @@ class ZZ99InstallerCest
         $page->step1_次へボタンをクリック();
 
         // step2への遷移を待つ
+        $I->waitForJS("return location.pathname + location.search == '/install/step2'", 10);
+        $I->waitForElementVisible(InstallPage::$STEP2_タイトル, 10);
         $I->waitForText('権限チェック', 10, InstallPage::$STEP2_タイトル);
         $I->see('権限チェック', InstallPage::$STEP2_タイトル);
         $I->see('アクセス権限は正常です', InstallPage::$STEP2_テキストエリア);
