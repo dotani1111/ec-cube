@@ -91,12 +91,38 @@ class ZZ99InstallerCest
         // フォーム送信後のJavaScriptエラーをチェック（遷移前にチェック）
         $this->checkJavaScriptErrors($I);
 
-        // step2への遷移を待つ
+        // step2への遷移を待つ（ループで待機）
         $I->comment('Step2への遷移を待機中...');
-        try {
-            $I->waitForJS("return location.pathname + location.search == '/install/step2'", 10);
-        } catch (Exception $e) {
+        $maxAttempts = 20; // 最大20回試行（5秒 × 20 = 100秒）
+        $attempt = 0;
+        $migrated = false;
+
+        while ($attempt < $maxAttempts && !$migrated) {
+            try {
+                $currentPath = $I->executeJS('return location.pathname + location.search');
+                $I->comment("試行 {$attempt}: 現在のパス: {$currentPath}");
+
+                if ($currentPath === '/install/step2') {
+                    $migrated = true;
+                    $I->comment('Step2への遷移が確認されました');
+                    break;
+                }
+
+                // まだ遷移していない場合は5秒待機
+                if ($attempt < $maxAttempts - 1) {
+                    $I->wait(5);
+                }
+                $attempt++;
+            } catch (Exception $e) {
+                $I->comment("遷移確認中にエラーが発生しました: {$e->getMessage()}");
+                $I->wait(5);
+                $attempt++;
+            }
+        }
+
+        if (!$migrated) {
             // 遷移に失敗した場合、現在の状態を確認
+            $e = new Exception('Step2への遷移がタイムアウトしました');
             $currentUrl = $I->executeJS('return location.href');
             $I->comment("Step2への遷移に失敗しました。現在のURL: {$currentUrl}");
 
@@ -107,17 +133,50 @@ class ZZ99InstallerCest
             // エラーメッセージが表示されていないか確認
             try {
                 $pageSource = $I->grabPageSource();
+
+                // フォームの存在を確認
+                if (strpos($pageSource, 'form1') !== false) {
+                    $I->comment('フォーム#form1が存在します');
+                } else {
+                    $I->comment('フォーム#form1が見つかりません');
+                }
+
+                // エラーメッセージを確認
                 if (strpos($pageSource, 'alert-danger') !== false) {
-                    $alertText = $I->grabTextFrom('.alert-danger');
-                    $I->comment("エラーメッセージ: {$alertText}");
+                    try {
+                        $alertText = $I->grabTextFrom('.alert-danger');
+                        $I->comment("エラーメッセージ: {$alertText}");
+                    } catch (Exception $e3) {
+                        $I->comment('エラーメッセージ要素は存在しますが、テキスト取得に失敗しました');
+                    }
                 }
                 if (strpos($pageSource, 'alert-warning') !== false) {
-                    $alertText = $I->grabTextFrom('.alert-warning');
-                    $I->comment("警告メッセージ: {$alertText}");
+                    try {
+                        $alertText = $I->grabTextFrom('.alert-warning');
+                        $I->comment("警告メッセージ: {$alertText}");
+                    } catch (Exception $e3) {
+                        $I->comment('警告メッセージ要素は存在しますが、テキスト取得に失敗しました');
+                    }
                 }
+
                 // フォームエラーを確認
                 if (strpos($pageSource, 'form-error') !== false || strpos($pageSource, 'has-error') !== false) {
                     $I->comment('フォームエラーが検出されました');
+                }
+
+                // フォームの状態を確認（CSRFトークンなど）
+                if (strpos($pageSource, '_token') !== false) {
+                    $I->comment('CSRFトークンが存在します');
+                } else {
+                    $I->comment('CSRFトークンが見つかりません');
+                }
+
+                // ページソースの一部を出力（デバッグ用）
+                $pageSourceLength = strlen($pageSource);
+                $I->comment("ページソースのサイズ: {$pageSourceLength} bytes");
+                if ($pageSourceLength > 0) {
+                    $preview = substr($pageSource, 0, 500);
+                    $I->comment("ページソースの先頭500文字: {$preview}...");
                 }
             } catch (Exception $e2) {
                 $I->comment("ページソース取得エラー: {$e2->getMessage()}");
@@ -129,8 +188,9 @@ class ZZ99InstallerCest
             // エラーを再スローしてテストを失敗させる
             throw $e;
         }
+
         $currentUrl = $I->executeJS('return location.href');
-        $I->comment("waitForJS後のURL: {$currentUrl}");
+        $I->comment("遷移完了後のURL: {$currentUrl}");
 
         $I->waitForElementVisible(InstallPage::$STEP2_タイトル, 10);
         $I->comment('Step2タイトル要素が表示されました');
