@@ -40,16 +40,30 @@ class ZZ99InstallerCest
         // step1
         $page = InstallPage::go($I);
         $I->see('ようこそ', InstallPage::$STEP1_タイトル);
+        $currentUrl = $I->executeJS('return location.href');
+        $I->comment("Step1 現在のURL: {$currentUrl}");
 
         // 次へ
         $page->step1_次へボタンをクリック();
+        $I->comment('Step1 次へボタンをクリックしました');
+        $currentUrl = $I->executeJS('return location.href');
+        $I->comment("クリック直後のURL: {$currentUrl}");
 
         // step2への遷移を待つ
+        $I->comment('Step2への遷移を待機中...');
         $I->waitForJS("return location.pathname + location.search == '/install/step2'", 10);
+        $currentUrl = $I->executeJS('return location.href');
+        $I->comment("waitForJS後のURL: {$currentUrl}");
+
         $I->waitForElementVisible(InstallPage::$STEP2_タイトル, 10);
+        $I->comment('Step2タイトル要素が表示されました');
+
         $I->waitForText('権限チェック', 10, InstallPage::$STEP2_タイトル);
+        $I->comment('権限チェックテキストを確認しました');
+
         $I->see('権限チェック', InstallPage::$STEP2_タイトル);
         $I->see('アクセス権限は正常です', InstallPage::$STEP2_テキストエリア);
+        $I->comment('Step2の確認が完了しました');
 
         $rootDir = __DIR__.'/../../';
 
