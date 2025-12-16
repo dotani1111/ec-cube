@@ -36,16 +36,24 @@ class ZZ99InstallerCest
     protected function checkJavaScriptErrors(AcceptanceTester $I)
     {
         try {
-            $logs = $I->grabBrowserLogs();
+            // executeInSeleniumを使ってWebDriverインスタンスにアクセス
             $errors = [];
-            foreach ($logs as $log) {
-                $level = $log['level'] ?? '';
-                // SEVERE はエラー、WARNING は警告として扱う
-                if ($level === 'SEVERE' || $level === 'WARNING') {
-                    $message = $log['message'] ?? '';
-                    $errors[] = "[{$level}] {$message}";
+            $I->executeInSelenium(function (Facebook\WebDriver\Remote\RemoteWebDriver $webDriver) use (&$errors) {
+                try {
+                    $logs = $webDriver->manage()->getLog('browser');
+                    foreach ($logs as $log) {
+                        $level = $log['level'] ?? '';
+                        // SEVERE はエラー、WARNING は警告として扱う
+                        if ($level === 'SEVERE' || $level === 'WARNING') {
+                            $message = $log['message'] ?? '';
+                            $errors[] = "[{$level}] {$message}";
+                        }
+                    }
+                } catch (Exception $e) {
+                    // getLogが利用できない場合（一部のブラウザではサポートされていない）
                 }
-            }
+            });
+
             if (!empty($errors)) {
                 $I->comment('JavaScriptエラー/警告が検出されました:');
                 foreach ($errors as $error) {
@@ -55,7 +63,7 @@ class ZZ99InstallerCest
                 $I->comment('JavaScriptエラーは検出されませんでした');
             }
         } catch (Exception $e) {
-            // grabBrowserLogs()が利用できない場合やエラーが発生した場合はスキップ
+            // ブラウザログの取得に失敗した場合はスキップ
             $I->comment("ブラウザログの取得に失敗しました: {$e->getMessage()}");
         }
     }
@@ -80,36 +88,47 @@ class ZZ99InstallerCest
         $page->step1_次へボタンをクリック();
         $I->comment('Step1 次へボタンをクリックしました');
 
-        // フォーム送信後の状態を確認
-        $I->wait(10); // フォーム送信処理を待つ
-        $currentUrl = $I->executeJS('return location.href');
-        $I->comment("submitForm 1秒後のURL: {$currentUrl}");
-
-        // ページの状態を確認
-        $pageTitle = $I->executeJS('return document.title');
-        $I->comment("ページタイトル: {$pageTitle}");
-
-        // エラーメッセージが表示されていないか確認
-        try {
-            $pageSource = $I->grabPageSource();
-            if (strpos($pageSource, 'alert-danger') !== false) {
-                $alertText = $I->grabTextFrom('.alert-danger');
-                $I->comment("エラーメッセージ: {$alertText}");
-            }
-            if (strpos($pageSource, 'alert-warning') !== false) {
-                $alertText = $I->grabTextFrom('.alert-warning');
-                $I->comment("警告メッセージ: {$alertText}");
-            }
-        } catch (Exception $e) {
-            $I->comment("ページソース取得エラー: {$e->getMessage()}");
-        }
-
-        // フォーム送信後のJavaScriptエラーをチェック
+        // フォーム送信後のJavaScriptエラーをチェック（遷移前にチェック）
         $this->checkJavaScriptErrors($I);
 
         // step2への遷移を待つ
         $I->comment('Step2への遷移を待機中...');
-        $I->waitForJS("return location.pathname + location.search == '/install/step2'", 10);
+        try {
+            $I->waitForJS("return location.pathname + location.search == '/install/step2'", 10);
+        } catch (Exception $e) {
+            // 遷移に失敗した場合、現在の状態を確認
+            $currentUrl = $I->executeJS('return location.href');
+            $I->comment("Step2への遷移に失敗しました。現在のURL: {$currentUrl}");
+
+            // ページの状態を確認
+            $pageTitle = $I->executeJS('return document.title');
+            $I->comment("ページタイトル: {$pageTitle}");
+
+            // エラーメッセージが表示されていないか確認
+            try {
+                $pageSource = $I->grabPageSource();
+                if (strpos($pageSource, 'alert-danger') !== false) {
+                    $alertText = $I->grabTextFrom('.alert-danger');
+                    $I->comment("エラーメッセージ: {$alertText}");
+                }
+                if (strpos($pageSource, 'alert-warning') !== false) {
+                    $alertText = $I->grabTextFrom('.alert-warning');
+                    $I->comment("警告メッセージ: {$alertText}");
+                }
+                // フォームエラーを確認
+                if (strpos($pageSource, 'form-error') !== false || strpos($pageSource, 'has-error') !== false) {
+                    $I->comment('フォームエラーが検出されました');
+                }
+            } catch (Exception $e2) {
+                $I->comment("ページソース取得エラー: {$e2->getMessage()}");
+            }
+
+            // 再度JavaScriptエラーをチェック
+            $this->checkJavaScriptErrors($I);
+
+            // エラーを再スローしてテストを失敗させる
+            throw $e;
+        }
         $currentUrl = $I->executeJS('return location.href');
         $I->comment("waitForJS後のURL: {$currentUrl}");
 
