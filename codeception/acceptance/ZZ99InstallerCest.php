@@ -130,7 +130,7 @@ class ZZ99InstallerCest
             $pageTitle = $I->executeJS('return document.title');
             $I->comment("ページタイトル: {$pageTitle}");
 
-            // エラーメッセージが表示されていないか確認
+            // ページの状態を確認
             try {
                 $pageSource = $I->grabPageSource();
 
@@ -139,24 +139,6 @@ class ZZ99InstallerCest
                     $I->comment('フォーム#form1が存在します');
                 } else {
                     $I->comment('フォーム#form1が見つかりません');
-                }
-
-                // エラーメッセージを確認
-                if (strpos($pageSource, 'alert-danger') !== false) {
-                    try {
-                        $alertText = $I->grabTextFrom('.alert-danger');
-                        $I->comment("エラーメッセージ: {$alertText}");
-                    } catch (Exception $e3) {
-                        $I->comment('エラーメッセージ要素は存在しますが、テキスト取得に失敗しました');
-                    }
-                }
-                if (strpos($pageSource, 'alert-warning') !== false) {
-                    try {
-                        $alertText = $I->grabTextFrom('.alert-warning');
-                        $I->comment("警告メッセージ: {$alertText}");
-                    } catch (Exception $e3) {
-                        $I->comment('警告メッセージ要素は存在しますが、テキスト取得に失敗しました');
-                    }
                 }
 
                 // フォームエラーを確認

@@ -155,14 +155,17 @@ class InstallController extends AbstractController
         $form->setData($sessionData);
         $form->handleRequest($request);
 
+        $isSubmitted = $form->isSubmitted();
+        $isValid = $isSubmitted ? $form->isValid() : false;
+
         log_info('[Step1] フォーム処理完了', [
-            'isSubmitted' => $form->isSubmitted(),
-            'isValid' => $form->isValid(),
+            'isSubmitted' => $isSubmitted,
+            'isValid' => $isValid,
             'formData' => $form->getData(),
         ]);
 
-        if ($form->isSubmitted()) {
-            if (!$form->isValid()) {
+        if ($isSubmitted) {
+            if (!$isValid) {
                 $errors = [];
                 foreach ($form->getErrors(true) as $error) {
                     $errors[] = $error->getMessage();
@@ -173,7 +176,7 @@ class InstallController extends AbstractController
             }
         }
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($isSubmitted && $isValid) {
             $formData = $form->getData();
             log_info('[Step1] セッションデータ保存開始', ['formData' => $formData]);
             $this->setSessionData($this->session, $formData);
