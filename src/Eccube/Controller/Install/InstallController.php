@@ -136,22 +136,55 @@ class InstallController extends AbstractController
     #[Template(template: 'step1.twig')]
     public function step1(Request $request): array|RedirectResponse
     {
+        log_info('[Step1] メソッド開始', ['method' => $request->getMethod()]);
+
         if (!$this->isInstallEnv()) {
+            log_info('[Step1] インストール環境チェック失敗');
             throw new NotFoundHttpException();
         }
+
+        log_info('[Step1] インストール環境チェック成功');
 
         $form = $this->formFactory
             ->createBuilder(Step1Type::class)
             ->getForm();
 
-        $form->setData($this->getSessionData($this->session));
+        $sessionData = $this->getSessionData($this->session);
+        log_info('[Step1] セッションデータ取得', ['sessionData' => $sessionData]);
+
+        $form->setData($sessionData);
         $form->handleRequest($request);
 
+        log_info('[Step1] フォーム処理完了', [
+            'isSubmitted' => $form->isSubmitted(),
+            'isValid' => $form->isValid(),
+            'formData' => $form->getData(),
+        ]);
+
+        if ($form->isSubmitted()) {
+            if (!$form->isValid()) {
+                $errors = [];
+                foreach ($form->getErrors(true) as $error) {
+                    $errors[] = $error->getMessage();
+                }
+                log_info('[Step1] フォームバリデーションエラー', ['errors' => $errors]);
+            } else {
+                log_info('[Step1] フォームバリデーション成功');
+            }
+        }
+
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->setSessionData($this->session, $form->getData());
+            $formData = $form->getData();
+            log_info('[Step1] セッションデータ保存開始', ['formData' => $formData]);
+            $this->setSessionData($this->session, $formData);
+            log_info('[Step1] セッションデータ保存完了');
+
+            log_info('[Step1] Step2へのリダイレクト実行');
 
             return $this->redirectToRoute('install_step2');
         }
+
+        log_info('[Step1] フォーム送信なし、またはバリデーション失敗。フォームビューを返す');
 
         $this->checkModules();
 
@@ -160,6 +193,8 @@ class InstallController extends AbstractController
             $authmagic = StringUtil::random(32);
         }
         $this->setSessionData($this->session, ['authmagic' => $authmagic]);
+
+        log_info('[Step1] メソッド終了（フォームビュー返却）');
 
         return [
             'form' => $form->createView(),
