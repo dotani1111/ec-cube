@@ -161,6 +161,8 @@ class ShopMasterType extends AbstractType
                 ],
             ])
             ->add('option_product_delivery_fee', ToggleSwitchType::class)
+            // ゲスト購入設定
+            ->add('option_guest_purchase', ToggleSwitchType::class)
             // 会員設定
             ->add('option_customer_activate', ToggleSwitchType::class)
             // マイページに注文状況を表示する

@@ -69,7 +69,7 @@ file that was distributed with this source code.
                 </form>
             </div>
 
-            {% if is_granted('IS_AUTHENTICATED_REMEMBERED') == false %}
+            {% if is_granted('IS_AUTHENTICATED_REMEMBERED') == false and BaseInfo.option_guest_purchase %}
                 <div class="ec-grid3__cell">
                     <div class="ec-guest">
                         <div class="ec-guest__inner">
