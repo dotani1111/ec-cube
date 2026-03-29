@@ -30,7 +30,8 @@ class InstallPage extends AbstractInstallPage
 
     public function step1_次へボタンをクリック()
     {
-        $this->tester->click(self::$STEP1_次へ);
+        // submitFormを使うことで、CSRFトークンを含めてフォームを正しく送信する
+        $this->tester->submitForm('#form1', []);
 
         return $this;
     }

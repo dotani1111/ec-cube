@@ -12,14 +12,13 @@ env:
 jobs:
   dockerbuild:
     name: dockerbuild
-    runs-on: ${{ matrix.operating-system }}
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
     strategy:
       fail-fast: false
       matrix:
-        operating-system: [ ubuntu-24.04 ]
         php: [ '8.4', '8.5' ]
         db: [ pgsql ]
         group: [ admin01 ]

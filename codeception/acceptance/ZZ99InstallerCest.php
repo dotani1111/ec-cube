@@ -31,6 +31,44 @@ class ZZ99InstallerCest
     ];
 
     /**
+     * JavaScriptエラーをチェックする.
+     */
+    protected function checkJavaScriptErrors(AcceptanceTester $I)
+    {
+        try {
+            // executeInSeleniumを使ってWebDriverインスタンスにアクセス
+            $errors = [];
+            $I->executeInSelenium(function (Facebook\WebDriver\Remote\RemoteWebDriver $webDriver) use (&$errors) {
+                try {
+                    $logs = $webDriver->manage()->getLog('browser');
+                    foreach ($logs as $log) {
+                        $level = $log['level'] ?? '';
+                        // SEVERE はエラー、WARNING は警告として扱う
+                        if ($level === 'SEVERE' || $level === 'WARNING') {
+                            $message = $log['message'] ?? '';
+                            $errors[] = "[{$level}] {$message}";
+                        }
+                    }
+                } catch (Exception $e) {
+                    // getLogが利用できない場合（一部のブラウザではサポートされていない）
+                }
+            });
+
+            if (!empty($errors)) {
+                $I->comment('JavaScriptエラー/警告が検出されました:');
+                foreach ($errors as $error) {
+                    $I->comment("  - {$error}");
+                }
+            } else {
+                $I->comment('JavaScriptエラーは検出されませんでした');
+            }
+        } catch (Exception $e) {
+            // ブラウザログの取得に失敗した場合はスキップ
+            $I->comment("ブラウザログの取得に失敗しました: {$e->getMessage()}");
+        }
+    }
+
+    /**
      * 権限チェックのテスト.
      */
     public function installer_CheckPermission(AcceptanceTester $I)
@@ -40,14 +78,38 @@ class ZZ99InstallerCest
         // step1
         $page = InstallPage::go($I);
         $I->see('ようこそ', InstallPage::$STEP1_タイトル);
+        $currentUrl = $I->executeJS('return location.href');
+        $I->comment("Step1 現在のURL: {$currentUrl}");
+
+        // JavaScriptエラーをチェック
+        $this->checkJavaScriptErrors($I);
+
+        // フォーム送信前に少し待機（セッション確立を待つ）
+        $I->wait(1);
 
         // 次へ
         $page->step1_次へボタンをクリック();
+        $I->comment('Step1 次へボタンをクリックしました');
 
-        // step2
-        $I->wait(5);
+        // フォーム送信後のJavaScriptエラーをチェック（遷移前にチェック）
+        $this->checkJavaScriptErrors($I);
+
+        // step2への遷移を待つ
+        $I->comment('Step2への遷移を待機中...');
+        $I->wait(10);
+
+        $I->waitForElementVisible(InstallPage::$STEP2_タイトル, 10);
+        $I->comment('Step2タイトル要素が表示されました');
+
+        $I->waitForText('権限チェック', 10, InstallPage::$STEP2_タイトル);
+        $I->comment('権限チェックテキストを確認しました');
+
         $I->see('権限チェック', InstallPage::$STEP2_タイトル);
         $I->see('アクセス権限は正常です', InstallPage::$STEP2_テキストエリア);
+        $I->comment('Step2の確認が完了しました');
+
+        // Step2遷移後のJavaScriptエラーをチェック
+        $this->checkJavaScriptErrors($I);
 
         $rootDir = __DIR__.'/../../';
 
@@ -63,6 +125,9 @@ class ZZ99InstallerCest
             $I->see('以下のファイルまたはディレクトリに書き込み権限を付与してください', InstallPage::$STEP2_テキストエリア);
             $I->see($file, InstallPage::$STEP2_テキストエリア);
 
+            // リロード後のJavaScriptエラーをチェック
+            $this->checkJavaScriptErrors($I);
+
             // 権限を戻す.
             chmod($path, $origin);
         }
@@ -77,6 +142,9 @@ class ZZ99InstallerCest
 
         $page->step2_リロード();
         $I->see('アクセス権限は正常です', InstallPage::$STEP2_テキストエリア);
+
+        // 最終リロード後のJavaScriptエラーをチェック
+        $this->checkJavaScriptErrors($I);
 
         chmod($externalDir, 0777);
         chmod($externalFile, 0777);
