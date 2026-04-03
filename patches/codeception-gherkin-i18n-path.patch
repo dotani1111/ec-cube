@@ -1,0 +1,20 @@
+--- a/src/Codeception/Test/Loader/Gherkin.php
++++ b/src/Codeception/Test/Loader/Gherkin.php
+@@ -48,7 +48,16 @@ class Gherkin implements LoaderInterface
+         }
+         $gherkin = new \ReflectionClass('Behat\Gherkin\Gherkin');
+         $gherkinClassPath = dirname($gherkin->getFileName());
+-        $i18n = require $gherkinClassPath . '/../../../i18n.php';
++        $i18nPath = $gherkinClassPath . '/../../../i18n.php';
++        if (!is_file($i18nPath)) {
++            $i18nPath = dirname($gherkinClassPath) . '/i18n.php';
++        }
++        if (!is_file($i18nPath)) {
++            throw new TestParseException(
++                'Could not locate behat/gherkin i18n.php (tried legacy and PSR-4 package layouts).'
++            );
++        }
++        $i18n = require $i18nPath;
+         $keywords = new GherkinKeywords($i18n);
+         $lexer = new GherkinLexer($keywords);
+         $this->parser = new GherkinParser($lexer);

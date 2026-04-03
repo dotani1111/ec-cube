@@ -61,6 +61,7 @@ env:
                         chromeOptions:
                             prefs:
                                 download.default_directory: '%PWD%/codeception/_support/_downloads'
+    # Chrome 109+ は従来の --headless だけだとウィンドウが出る／無視されることがあるため --headless=new を付与
     chrome-headless:
         modules:
             config:
@@ -68,6 +69,6 @@ env:
                     browser: chrome
                     capabilities:
                         chromeOptions:
-                            args: ["--headless", "--disable-gpu"]
+                            args: ["--headless=new", "--disable-gpu", "--disable-dev-shm-usage"]
                             prefs:
                                 download.default_directory: '%PWD%/codeception/_support/_downloads'
