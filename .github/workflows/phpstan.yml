@@ -15,18 +15,21 @@ on:
 
 jobs:
   phpstan:
-    name: PHPStan
-
-    runs-on: ubuntu-latest
+    name: PHPStan (${{ matrix.php }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '7.4', '8.1', '8.3' ]
 
     steps:
     - name: "Checkout"
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Setup PHP
       uses: nanasess/setup-php@master
       with:
-        php-version: '7.4'
+        php-version: ${{ matrix.php }}
 
     - name: Initialize Composer
       uses: ./.github/actions/composer
