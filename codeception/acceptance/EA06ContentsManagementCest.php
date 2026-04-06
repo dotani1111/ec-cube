@@ -111,6 +111,7 @@ class EA06ContentsManagementCest
             $I->waitForText('upload.txt', 10, $FileManagePage->ファイル名(1));
 
             $FileManagePage->一覧_ダウンロード(1);
+            $I->wait(10);
             $UploadedFile = $I->getLastDownloadFile('/^upload\.txt$/');
             $I->assertEquals('This is uploaded file.', file_get_contents($UploadedFile));
 

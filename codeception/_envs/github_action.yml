@@ -8,6 +8,8 @@ modules:
                 chromeOptions:
                     prefs:
                         download.default_directory: '%GITHUB_WORKSPACE%/codeception/_support/_downloads'
+                        download.prompt_for_download: false
+                        download.directory_upgrade: true
             wait: 30
         MailCatcher:
             url: '127.0.0.1'

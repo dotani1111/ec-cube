@@ -154,6 +154,7 @@ class EA03ProductCest
 
         $I->see('検索結果：'.count($Products).'件が該当しました', ProductManagePage::$検索結果_メッセージ);
 
+        $I->wait(10);
         $ProductCSV = $I->getLastDownloadFile('/^product_\d{14}\.csv$/');
         $I->assertGreaterOrEquals(count($Products), count(file($ProductCSV)), '検索結果以上の行数があるはず');
     }
@@ -733,6 +734,7 @@ class EA03ProductCest
         // csv EA0305-UC04-T01
         $CategoryPage
             ->CSVダウンロード実行();
+        $I->wait(10);
         $I->getLastDownloadFile('/^category_\d{14}\.csv$/');
 
         // csv EA0305-UC04-T02
@@ -837,6 +839,7 @@ class EA03ProductCest
         $I->wantTo('EA0306-UC01-T02 商品CSV登録雛形ファイルダウンロード');
 
         ProductCsvUploadPage::go($I)->雛形ダウンロード();
+        $I->wait(10);
         $ProductTemplateCSV = $I->getLastDownloadFile('/^product\.csv$/');
         $I->assertEquals(1, count(file($ProductTemplateCSV)), 'ヘッダ行だけのファイル');
     }
@@ -877,6 +880,7 @@ class EA03ProductCest
 
         // 雛形のダウンロード
         CategoryCsvUploadPage::go($I)->雛形ダウンロード();
+        $I->wait(10);
         $CategoryTemplateCSV = $I->getLastDownloadFile('/^category\.csv$/');
         $I->assertEquals(1, count(file($CategoryTemplateCSV)), 'ヘッダ行だけのファイル');
     }

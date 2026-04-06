@@ -269,6 +269,7 @@ class EA05CustomerCest
             ->検索()
             ->CSVダウンロード();
 
+        $I->wait(10);
         $CustomerCSV = $I->getLastDownloadFile('/^customer_\d{14}\.csv$/');
         $I->assertEquals(count($findCustomers()) + 1, count(file($CustomerCSV)));
     }

@@ -169,13 +169,15 @@ class AcceptanceTester extends Actor
     }
 
     /**
-     * @param string|$fileNameRegex ファイル名のパターン(CI環境で同時実行したときに区別するため)
+     * @param string    $fileNameRegex      ファイル名のパターン(CI環境で同時実行したときに区別するため)
+     * @param int       $retryCount         見つからないときの再試行回数（CI の CSV/PDF 生成が遅いためデフォルトを多めに取る）
+     * @param float|int $retryWaitSeconds   再試行前の待ち秒数
      *
      * @return string ファイルパス
      *
      * @throws FileNotFoundException 指定したパターンにマッチするファイルがない場合
      */
-    public function getLastDownloadFile($fileNameRegex, $retryCount = 3)
+    public function getLastDownloadFile($fileNameRegex, $retryCount = 12, $retryWaitSeconds = 5)
     {
         $downloadDir = __DIR__.'/_downloads/';
         $files = scandir($downloadDir);
@@ -191,9 +193,9 @@ class AcceptanceTester extends Actor
 
         if (empty($files)) {
             if ($retryCount > 0) {
-                $this->wait(3);
+                $this->wait($retryWaitSeconds);
 
-                return $this->getLastDownloadFile($fileNameRegex, $retryCount - 1);
+                return $this->getLastDownloadFile($fileNameRegex, $retryCount - 1, $retryWaitSeconds);
             }
             throw new FileNotFoundException($fileNameRegex);
         }
