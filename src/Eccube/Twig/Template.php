@@ -48,7 +48,13 @@ class Template extends \Twig\Template
         return yield from parent::yield($context, $blocks);
     }
 
-    public function getTemplateName(): string
+    /**
+     * 以下、Twig が生成するテンプレートは getTemplateName / getDebugInfo / doDisplay /
+     * getSourceContext を戻り値型なしで出力するため、親にだけ型を付けると PHP 8+ で不一致になる。
+     *
+     * @return string
+     */
+    public function getTemplateName()
     {
         // Templateのキャッシュ作成時に動的に作成されるメソッド
         // デバッグツールバーでエラーが発生するため空文字を返しておく。
@@ -56,19 +62,28 @@ class Template extends \Twig\Template
         return '';
     }
 
-    public function getDebugInfo(): array
+    /**
+     * @return array
+     */
+    public function getDebugInfo()
     {
         // Templateのキャッシュ作成時に動的に作成されるメソッド
         return [];
     }
 
-    protected function doDisplay(array $context, array $blocks = []): iterable
+    /**
+     * @return iterable<int, string>
+     */
+    protected function doDisplay(array $context, array $blocks = [])
     {
         // Templateのキャッシュ作成時に動的に作成されるメソッド
         return [];
     }
 
-    public function getSourceContext(): Source
+    /**
+     * @return Source
+     */
+    public function getSourceContext()
     {
         // FIXME Twig\Loader\FilesystemLoader の実装を持ってきたが,これで問題ないか要確認
         return new Source('', $this->getTemplateName(), '');
