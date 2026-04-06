@@ -1,9 +1,5 @@
 name: Testing dockerbuild
 on:
-  push:
-    paths:
-      - '**'
-      - '!*.md'
   release:
     types: [ published ]
 env:
