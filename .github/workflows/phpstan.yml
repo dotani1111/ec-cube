@@ -1,17 +1,10 @@
 name: PHPStan
+
 on:
-  push:
-    branches:
-      - '*'
-    tags:
-      - '*'
-    paths:
-      - '**'
-      - '!*.md'
-  pull_request:
-    paths:
-      - '**'
-      - '!*.md'
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
   phpstan:

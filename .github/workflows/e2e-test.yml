@@ -1,17 +1,11 @@
 name: E2E test for EC-CUBE
+
 on:
-  push:
-    branches:
-      - '*'
-    tags:
-      - '*'
-    paths:
-      - '**'
-      - '!*.md'
-  pull_request:
-    paths:
-      - '**'
-      - '!*.md'
+  workflow_call:
+
+permissions:
+  contents: read
+
 jobs:
   codeception:
     name: Codeception
