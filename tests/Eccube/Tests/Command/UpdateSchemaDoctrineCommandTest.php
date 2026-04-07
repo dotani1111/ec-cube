@@ -31,7 +31,7 @@ use Symfony\Component\Process\Process;
  * bin/console をサブプロセスで実行すると app/proxy/entity が更新されるが、PHPUnit 親プロセスでは Entity が既にロード済みのままとなる。
  *
  * メソッド間で PHP プロセスを分け、テスト同士のクラスロード状態を切り離す。
- * 同一メソッド内でサブプロセス後に createClient() するときは、AnnotationDriver 側の class_exists チェックにより
+ * 同一メソッド内でサブプロセス後に createClient() するときは、Kernel::loadEntityProxies() の class_exists チェックにより
  * プロキシ二重 require の Fatal を避ける。
  *
  * @runTestsInSeparateProcesses
