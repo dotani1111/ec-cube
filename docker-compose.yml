@@ -20,9 +20,9 @@ services:
   ### ECCube4 ##################################
   ec-cube:
     ### ローカルでビルドする場合は以下のコマンドを使用します
-    ## docker build -t ec-cube-local --no-cache --pull --build-arg TAG=8.3-apache .
-    ## docker tag ec-cube-local ghcr.io/ec-cube/ec-cube-php:8.3-apache
-    image: ${EC_CUBE_IMAGE:-ec-cube-local}
+    ## docker build -t ec-cube --no-cache --pull --build-arg TAG=8.1-apache .
+    ## docker tag ec-cube ghcr.io/ec-cube/ec-cube-php:8.1-apache
+    image: ${REGISTRY:-ghcr.io}/${IMAGE_NAME:-ec-cube/ec-cube-php}:${TAG:-8.1-apache}
     ports:
       - 8080:80
       - 4430:443
@@ -39,7 +39,7 @@ services:
       DATABASE_SERVER_VERSION: 3
       DATABASE_CHARSET: 'utf8'
       MAILER_DSN: "smtp://mailcatcher:1025"
-      # ECCUBE_AUTH_MAGIC: "<change.me>"
+      ECCUBE_AUTH_MAGIC: "<change.me>"
       # TRUSTED_HOSTS: '^127.0.0.1$$,^localhost$$'
       # ECCUBE_LOCALE: "ja"
       # ECCUBE_TIMEZONE: "Asia/Tokyo"
