@@ -31,8 +31,8 @@ use Symfony\Component\Process\Process;
  * bin/console をサブプロセスで実行すると app/proxy/entity が更新されるが、PHPUnit 親プロセスでは Entity が既にロード済みのままとなる。
  *
  * メソッド間で PHP プロセスを分け、テスト同士のクラスロード状態を切り離す。
- * 同一メソッド内でサブプロセス後に createClient() するときは、phpunit.xml.dist の ECCUBE_ENTITY_PROXY_REDECLARE_GUARD により
- * AnnotationDriver 側でプロキシ二重 require の Fatal を避ける（CI の --filter 1 メソッド実行でも再現しうる）。
+ * 同一メソッド内でサブプロセス後に createClient() するときは、AnnotationDriver 側の class_exists チェックにより
+ * プロキシ二重 require の Fatal を避ける。
  *
  * @runTestsInSeparateProcesses
  * @group update-schema-doctrine
@@ -429,7 +429,7 @@ class UpdateSchemaDoctrineCommandTest extends EccubeTestCase
         $tar->addFromString('Entity/HogeTrait.php', <<< EOT
 <?php
 
-namespace Plugin\\${tmpname}\\Entity;
+namespace Plugin\\{$tmpname}\\Entity;
 
 use Eccube\Annotation\EntityExtension;
 use Doctrine\ORM\Mapping as ORM;

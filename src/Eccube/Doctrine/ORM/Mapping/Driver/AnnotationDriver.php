@@ -79,16 +79,14 @@ class AnnotationDriver extends \Doctrine\ORM\Mapping\Driver\AnnotationDriver
                 // Replace /path/to/ec-cube to proxies path
                 $proxyFile = str_replace($projectDir, $this->trait_proxies_directory, $path).'/'.basename($sourceFile);
                 if (file_exists($proxyFile)) {
-                    // 本番は従来どおりプロキシを優先。PHPUnit 等で ECCUBE_ENTITY_PROXY_REDECLARE_GUARD=1 のときだけ、
-                    // 同一プロセス内で src が先にロード済み（classmap）→ プロキシを require すると二重定義 Fatal になるケースを避ける。
-                    if ($this->isEntityProxyRedeclareGuardEnabled()) {
-                        $fqcn = $this->resolveFqcnFromEntitySourceFile($sourceFile);
-                        if ($fqcn !== null && class_exists($fqcn, false)) {
-                            require_once $sourceFile;
-                        } else {
-                            require_once $proxyFile;
-                            $sourceFile = $proxyFile;
-                        }
+                    // 通常はプロキシを優先してロードする（プラグインの EntityExtension を含んだ拡張クラス）。
+                    // ただし Composer classmap 等で src 側のクラスが先にロード済みの場合、
+                    // プロキシを require すると同名クラスの二重定義で Fatal error になる。
+                    // これを防ぐため、クラスが既にロード済みかを常にチェックし、
+                    // ロード済みならプロキシの require をスキップする。
+                    $fqcn = $this->resolveFqcnFromEntitySourceFile($sourceFile);
+                    if ($fqcn !== null && class_exists($fqcn, false)) {
+                        require_once $sourceFile;
                     } else {
                         require_once $proxyFile;
                         $sourceFile = $proxyFile;
@@ -114,13 +112,6 @@ class AnnotationDriver extends \Doctrine\ORM\Mapping\Driver\AnnotationDriver
         $this->classNames = $classes;
 
         return $classes;
-    }
-
-    private function isEntityProxyRedeclareGuardEnabled(): bool
-    {
-        $flag = $_SERVER['ECCUBE_ENTITY_PROXY_REDECLARE_GUARD'] ?? $_ENV['ECCUBE_ENTITY_PROXY_REDECLARE_GUARD'] ?? '';
-
-        return $flag === '1' || strtolower((string) $flag) === 'true';
     }
 
     /**

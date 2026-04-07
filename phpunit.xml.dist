@@ -11,8 +11,6 @@
     <php>
         <ini name="display_errors" value="1" />
         <ini name="error_reporting" value="-1" />
-        <!-- bin/console サブプロセスでプロキシ再生成後、親プロセスで Entity を二重定義しない（AnnotationDriver） -->
-        <server name="ECCUBE_ENTITY_PROXY_REDECLARE_GUARD" value="1" force="true" />
         <server name="KERNEL_CLASS" value="Eccube\Kernel" />
         <server name="SYMFONY_DEPRECATIONS_HELPER" value="weak" />
         <server name="APP_ENV" value="test" force="true" />
