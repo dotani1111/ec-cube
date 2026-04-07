@@ -79,9 +79,20 @@ class AnnotationDriver extends \Doctrine\ORM\Mapping\Driver\AnnotationDriver
                 // Replace /path/to/ec-cube to proxies path
                 $proxyFile = str_replace($projectDir, $this->trait_proxies_directory, $path).'/'.basename($sourceFile);
                 if (file_exists($proxyFile)) {
-                    require_once $proxyFile;
-
-                    $sourceFile = $proxyFile;
+                    // 本番は従来どおりプロキシを優先。PHPUnit 等で ECCUBE_ENTITY_PROXY_REDECLARE_GUARD=1 のときだけ、
+                    // 同一プロセス内で src が先にロード済み（classmap）→ プロキシを require すると二重定義 Fatal になるケースを避ける。
+                    if ($this->isEntityProxyRedeclareGuardEnabled()) {
+                        $fqcn = $this->resolveFqcnFromEntitySourceFile($sourceFile);
+                        if ($fqcn !== null && class_exists($fqcn, false)) {
+                            require_once $sourceFile;
+                        } else {
+                            require_once $proxyFile;
+                            $sourceFile = $proxyFile;
+                        }
+                    } else {
+                        require_once $proxyFile;
+                        $sourceFile = $proxyFile;
+                    }
                 } else {
                     require_once $sourceFile;
                 }
@@ -103,5 +114,32 @@ class AnnotationDriver extends \Doctrine\ORM\Mapping\Driver\AnnotationDriver
         $this->classNames = $classes;
 
         return $classes;
+    }
+
+    private function isEntityProxyRedeclareGuardEnabled(): bool
+    {
+        $flag = $_SERVER['ECCUBE_ENTITY_PROXY_REDECLARE_GUARD'] ?? $_ENV['ECCUBE_ENTITY_PROXY_REDECLARE_GUARD'] ?? '';
+
+        return $flag === '1' || strtolower((string) $flag) === 'true';
+    }
+
+    /**
+     * エンティティ PHP ファイルパスから FQCN を推定する（プロキシ二重 require 判定用）.
+     */
+    private function resolveFqcnFromEntitySourceFile(string $sourceFile): ?string
+    {
+        $normalized = str_replace('\\', '/', $sourceFile);
+
+        if (preg_match('#/src/Eccube/Entity/(.+)\.php$#', $normalized, $m)) {
+            return 'Eccube\\Entity\\'.str_replace('/', '\\', $m[1]);
+        }
+        if (preg_match('#/app/Customize/Entity/(.+)\.php$#', $normalized, $m)) {
+            return 'Customize\\Entity\\'.str_replace('/', '\\', $m[1]);
+        }
+        if (preg_match('#/app/Plugin/([^/]+)/Entity/(.+)\.php$#', $normalized, $m)) {
+            return 'Plugin\\'.$m[1].'\\Entity\\'.str_replace('/', '\\', $m[2]);
+        }
+
+        return null;
     }
 }
