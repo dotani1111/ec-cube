@@ -194,7 +194,7 @@
     },
     "config": {
         "platform": {
-            "php": "8.3.30"
+            "php": "7.4.0"
         },
         "preferred-install": {
             "*": "dist"
@@ -207,17 +207,6 @@
             "ec-cube/plugin-installer": true,
             "kylekatarnls/update-helper": true,
             "symfony/flex": true
-        }
-    },
-    "repositories": {
-        "eccube": {
-            "type": "composer",
-            "url": "https://package-api-c2.ec-cube.net/v42",
-            "options": {
-                "http": {
-                    "header": ["X-ECCUBE-KEY: "]
-                }
-            }
         }
     }
 }
