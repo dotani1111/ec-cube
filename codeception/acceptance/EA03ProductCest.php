@@ -761,8 +761,8 @@ class EA03ProductCest
             ->acceptModal();
 
         // Delete category root
-        // CategoryManagePage::go($I)->一覧_削除(3)
-        //     ->acceptModal();
+        CategoryManagePage::go($I)->一覧_削除(3)
+            ->acceptModal();
     }
 
     /**
