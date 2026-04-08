@@ -95,7 +95,8 @@ jobs:
         env:
           PGPASSWORD: 'password'
         run: |
-          sudo apt-fast install -y postgresql-client
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
           psql eccube_db -h 127.0.0.1 -U postgres -c "update dtb_base_info set authentication_key='test';"
 
       - name: Update baseinfo with mysql
@@ -250,7 +251,8 @@ jobs:
         env:
           PGPASSWORD: 'password'
         run: |
-          sudo apt-fast install -y postgresql-client
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
           psql eccube_db -h 127.0.0.1 -U postgres -c "update dtb_base_info set authentication_key='test';"
 
       - name: Update baseinfo with mysql
@@ -405,7 +407,8 @@ jobs:
         env:
           PGPASSWORD: 'password'
         run: |
-          sudo apt-fast install -y postgresql-client
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
           psql eccube_db -h 127.0.0.1 -U postgres -c "update dtb_base_info set authentication_key='test';"
 
       - name: Update baseinfo with mysql
@@ -565,7 +568,8 @@ jobs:
         env:
           PGPASSWORD: 'password'
         run: |
-          sudo apt-fast install -y postgresql-client
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
           psql eccube_db -h 127.0.0.1 -U postgres -c "update dtb_base_info set authentication_key='test';"
 
       - name: Update baseinfo with mysql
