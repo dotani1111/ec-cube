@@ -70,7 +70,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: phpunit-reports
+          name: phpunit-${{ matrix.php }}-${{ matrix.db }}-reports
           path: coverage1.xml
   codeception:
     name: Codeception
@@ -187,19 +187,19 @@ jobs:
       - name: Upload outputs
         uses: actions/upload-artifact@v4
         with:
-          name: codeception-${{ matrix.group }}-evidence
+          name: codeception-${{ matrix.php }}-${{ matrix.db }}-${{ matrix.group }}-evidence
           path: codeception/_output/
       - name: Upload report
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: codeception-${{ matrix.group }}-reports
+          name: codeception-${{ matrix.php }}-${{ matrix.db }}-${{ matrix.group }}-reports
           path: codeception/_output/**/*.xml
       - name: Upload logs
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: codeception-${{ matrix.group }}-logs
+          name: codeception-${{ matrix.php }}-${{ matrix.db }}-${{ matrix.group }}-logs
           path: var/log/
 
   upload:
@@ -213,15 +213,15 @@ jobs:
         with:
           path: reports
       - run: |
-          mv reports/codeception-admin01-reports/acceptance\ \(chrome,\ github_action\).remote.coverage.xml reports/acceptance.admin01.coverage.xml
-          mv reports/codeception-admin02-reports/acceptance\ \(chrome,\ github_action\).remote.coverage.xml reports/acceptance.admin02.coverage.xml
-          mv reports/codeception-admin03-reports/acceptance\ \(chrome,\ github_action\).remote.coverage.xml reports/acceptance.admin03.coverage.xml
-          mv reports/codeception-front-reports/acceptance\ \(chrome,\ github_action\).remote.coverage.xml reports/acceptance.front.coverage.xml
-          mv reports/codeception-installer-reports/acceptance\ \(chrome,\ github_action\).remote.coverage.xml reports/acceptance.installer.coverage.xml
+          mv reports/codeception-8.1-pgsql-admin01-reports/acceptance\ \(chrome,\ github_action\).remote.coverage.xml reports/acceptance.admin01.coverage.xml
+          mv reports/codeception-8.1-pgsql-admin02-reports/acceptance\ \(chrome,\ github_action\).remote.coverage.xml reports/acceptance.admin02.coverage.xml
+          mv reports/codeception-8.1-pgsql-admin03-reports/acceptance\ \(chrome,\ github_action\).remote.coverage.xml reports/acceptance.admin03.coverage.xml
+          mv reports/codeception-8.1-pgsql-front-reports/acceptance\ \(chrome,\ github_action\).remote.coverage.xml reports/acceptance.front.coverage.xml
+          mv reports/codeception-8.1-pgsql-installer-reports/acceptance\ \(chrome,\ github_action\).remote.coverage.xml reports/acceptance.installer.coverage.xml
       - name: Upload unit test coverage
         uses: codecov/codecov-action@v4
         with:
-          files: ./reports/phpunit-reports/coverage1.xml
+          files: ./reports/phpunit-8.1-pgsql-reports/coverage1.xml
           flags: Unit
           fail_ci_if_error: true
       - name: Upload E2E coverage
