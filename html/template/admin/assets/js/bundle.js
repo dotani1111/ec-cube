@@ -8,7 +8,8 @@ require('ace-builds/src-min-noconflict/ace');
 require('ace-builds/src-min-noconflict/ext-language_tools');
 require('ace-builds/webpack-resolver');
 
-require('jquery.qrcode');
+const qrcode = require('qrcode-generator');
+global.qrcode = qrcode;
 
 require('jquery-ui/themes/base/all.css');
 require('jquery-ui/ui/core');
@@ -18,6 +19,9 @@ require('jquery-ui/ui/widgets/mouse');
 require('jquery-ui/ui/widgets/resizable');
 require('jquery-ui/ui/widgets/sortable');
 require('jquery-ui/ui/widgets/tooltip');
+
+const SortableModule = require('sortablejs');
+global.Sortable = SortableModule.Sortable || SortableModule.default || SortableModule;
 
 const {
     Chart,
