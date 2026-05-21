@@ -37,8 +37,11 @@ class AutoNewItemController extends AbstractController
         ])
             ->setMaxResults($this->eccubeConfig['eccube_max_number_new_items_get']);
 
+        $query = $qb->getQuery()
+            ->enableResultCache($this->eccubeConfig['eccube_result_cache_lifetime_short']);
+
         return [
-            'Products' => $qb->getQuery()->getResult(),
+            'Products' => $query->getResult(),
         ];
     }
 }
