@@ -47,12 +47,6 @@ jobs:
           - db: pgsql
             database_url: postgres://postgres:password@127.0.0.1:5432/eccube_db
             database_server_version: 18
-    services:
-      mailcatcher:
-        image: schickling/mailcatcher
-        ports:
-          - 1080:1080
-          - 1025:1025
 
     steps:
       - name: Checkout
@@ -163,6 +157,21 @@ jobs:
         with:
           packages: fonts-ipafont fonts-ipaexfont
           version: 1.0
+
+      - name: Start Mailpit (SMTP sink)
+        # mailcatcher コンテナ(Docker Hub pull)の置き換え。mailpit の Go 単一バイナリを
+        # GitHub Releases から gh(GITHUB_TOKEN 認証)で取得し、SHA256 をハードコード検証する。
+        # タグは可変なので、信頼値を自リポジトリに焼き込む＝action の @<commit-sha> ピン相当。
+        # CDN 配信なので registry の pull レート制限にも乗らない。1025 で SMTP を受ける
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAILPIT_VERSION: v1.30.3
+          MAILPIT_SHA256: 6c7af993fb4054def4adfc7c85b40f9570fd6172eaccd0221c4969f2cc7a6294
+        run: |
+          gh release download "$MAILPIT_VERSION" --repo axllent/mailpit --pattern 'mailpit-linux-amd64.tar.gz' --dir "$RUNNER_TEMP"
+          echo "${MAILPIT_SHA256}  ${RUNNER_TEMP}/mailpit-linux-amd64.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/mailpit-linux-amd64.tar.gz" -C "$RUNNER_TEMP"
+          "$RUNNER_TEMP/mailpit" --smtp 127.0.0.1:1025 --listen 127.0.0.1:8025 &
 
       - name: Start PHP Development Server
         env:
