@@ -1,0 +1,224 @@
+name: E2E test (Symfony CLI server experiment)
+
+# php -S(単一プロセス)の worker 枯渇による page.goto / locator.click タイムアウトが
+# PHP_CLI_SERVER_WORKERS でも残るため、Symfony CLI のローカルサーバ
+# (Go 製リバースプロキシ + PHP-FPM/worker)で安定するかを検証する実験用 workflow。
+# 既存 e2e-test.yml とは独立。手動トリガでのみ実行する。
+
+on:
+  workflow_dispatch:
+  # 実験ブランチで PR を開けば upstream CI で自動実行される(マージ前提ではない)
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  playwright:
+    name: Playwright sf-server (${{ matrix.suite }}, ${{ matrix.php }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '8.4' ]
+        db: [ pgsql ]
+        # flaky 常連の admin suite に絞って安定性を比較する
+        suite:
+          - admin-basicinfo
+          - admin-system
+          - admin-product
+        include:
+          - db: pgsql
+            database_url: postgres://postgres:password@127.0.0.1:5432/eccube_db
+            database_server_version: 14
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+      mailcatcher:
+        image: schickling/mailcatcher
+        ports:
+          - 1080:1080
+          - 1025:1025
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc  # v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: redis
+          # Symfony CLI server は PHP-FPM があればそれを前段プロキシ配下で多重化する
+          tools: none
+          coverage: none
+
+      - name: Enable register_argc_argv for Codeception
+        if: matrix.php == '8.5'
+        run: |
+          INI_FILE=$(php --ini | grep "Loaded Configuration" | sed -e "s|.*:\s*||" | tr -d '"')
+          echo "Using php.ini: $INI_FILE"
+          echo "register_argc_argv = On" | sudo tee -a "$INI_FILE"
+          php -i | grep register_argc_argv
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6.4.0
+        with:
+          node-version: 20
+
+      - name: Initialize Composer
+        uses: ./.github/actions/composer
+
+      - name: Generate ECCUBE_AUTH_MAGIC
+        run: echo "ECCUBE_AUTH_MAGIC=$(openssl rand -hex 32)" >> $GITHUB_ENV
+
+      - name: Cache npm dependencies
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Cache build artifacts
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5
+        id: build-cache
+        with:
+          path: |
+            html/template/**/css
+            html/bundle
+          key: ${{ runner.os }}-build-${{ hashFiles('html/template/**/scss/**/*.scss', 'html/template/**/js/**/*.js', 'package-lock.json', 'gulpfile.js', 'webpack.config.js', 'gulp/**/*.js') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+      - name: Build Sass and JavaScript
+        if: steps.build-cache.outputs.cache-hit != 'true'
+        run: |
+          npm ci
+          npm run build
+
+      - name: Setup to EC-CUBE
+        env:
+          APP_ENV: 'codeception'
+          DATABASE_URL: ${{ matrix.database_url }}
+          DATABASE_SERVER_VERSION: ${{ matrix.database_server_version }}
+          ECCUBE_AUTH_MAGIC: ${{ env.ECCUBE_AUTH_MAGIC }}
+        run: |
+          echo "APP_ENV=${APP_ENV}" > .env
+          echo "TRUSTED_HOSTS=127.0.0.1,localhost" >> .env
+          echo "ECCUBE_AUTH_MAGIC=${ECCUBE_AUTH_MAGIC}" >> .env
+          bin/console doctrine:database:create --env=dev
+          bin/console doctrine:schema:create --env=dev
+          bin/console eccube:fixtures:load --env=dev
+
+      - name: Install Playwright dependencies
+        working-directory: e2e
+        run: npm ci
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('e2e/package-lock.json') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Playwright system deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        working-directory: e2e
+        run: npx playwright install-deps chromium
+
+      - name: Cache apt packages
+        uses: awalsh128/cache-apt-pkgs-action@acb598e5ddbc6f68a970c5da0688d2f3a9f04d05  # latest
+        with:
+          packages: fonts-ipafont fonts-ipaexfont
+          version: 1.0
+
+      - name: Install Symfony CLI
+        run: |
+          curl -1sLf 'https://get.symfony.com/cli/installer' | bash
+          echo "$HOME/.symfony5/bin" >> $GITHUB_PATH
+
+      - name: Start Symfony Server
+        env:
+          APP_ENV: 'codeception'
+          DATABASE_URL: ${{ matrix.database_url }}
+          DATABASE_SERVER_VERSION: ${{ matrix.database_server_version }}
+          MAILER_DSN: 'smtp://127.0.0.1:1025'
+          ECCUBE_PACKAGE_API_URL: 'http://127.0.0.1:8080'
+          ECCUBE_AUTH_MAGIC: ${{ env.ECCUBE_AUTH_MAGIC }}
+        run: |
+          # EC-CUBE は public-dir が "." で front controller がルート直下の index.php のため明示する。
+          # daemon 起動後、ヘルスチェックが通るまで待ってから次ステップへ進む。
+          symfony server:start \
+            --port=8000 \
+            --no-tls \
+            --document-root="${GITHUB_WORKSPACE}" \
+            --passthru=index.php \
+            --daemon
+          symfony server:status || true
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/ || true)
+            echo "healthcheck attempt ${i}: HTTP ${code}"
+            if [ "$code" != "000" ]; then echo "server is up"; break; fi
+            sleep 1
+          done
+
+      - name: Determine Playwright project
+        id: project
+        run: |
+          SUITE="${{ matrix.suite }}"
+          if [[ "$SUITE" == admin-* ]]; then
+            echo "project=admin-tests" >> $GITHUB_OUTPUT
+          elif [[ "$SUITE" == front-* ]]; then
+            echo "project=front-tests" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run Playwright tests
+        working-directory: e2e
+        env:
+          BASE_URL: 'http://127.0.0.1:8000'
+          DATABASE_URL: ${{ matrix.database_url }}
+          ECCUBE_ADMIN_ROUTE: 'admin'
+          ADMIN_USER: 'admin'
+          ADMIN_PASSWORD: 'password'
+          APP_ENV: 'codeception'
+          CI: 'true'
+        run: |
+          npx playwright test --project=setup --project=${{ steps.project.outputs.project }} ${{ matrix.suite }}.spec.ts
+
+      - name: Show Symfony server log on failure
+        if: failure()
+        # server:log は tail 追従でハングするため timeout で打ち切る
+        run: timeout 10 symfony server:log || true
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: sf-playwright-${{ matrix.suite }}-${{ matrix.php }}-report
+          path: e2e/playwright-report/
+
+      - name: Upload ScreenShots
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: sf-playwright-${{ matrix.suite }}-${{ matrix.php }}-results
+          path: e2e/test-results/
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: sf-playwright-${{ matrix.suite }}-${{ matrix.php }}-logs
+          path: var/log/
